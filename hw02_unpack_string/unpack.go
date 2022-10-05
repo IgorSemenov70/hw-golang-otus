@@ -2,11 +2,15 @@ package hw02unpackstring
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"unicode"
 )
 
-var ErrInvalidString = errors.New("invalid string")
+var (
+	ErrInvalidString = errors.New("invalid string")
+	ErrConvertAtoi   = errors.New("invalid convert string in number")
+)
 
 func checkFirstIsDigit(packedString string) bool {
 	// true если первый элемент число
@@ -18,31 +22,25 @@ func checkCurrentIsDigitAndPreviousNotBackslash(item rune, index int, sr []rune)
 	return unicode.IsDigit(item) && unicode.IsDigit(sr[index-1]) && sr[index-2] != '\\'
 }
 
-func checkBackslash(item rune, backslash bool) bool {
-	// true если элемент равен \\
-	return item == '\\' && !backslash
-}
-
 func checkBackslashAndIsLetter(backslash bool, item rune) bool {
 	// true если предущий элемент был // и текущий элемент буква
 	return backslash && unicode.IsLetter(item)
 }
 
 func Unpack(s string) (string, error) {
-	sr := []rune(s)
-	builder := strings.Builder{}
-	var n int
-	var backslash bool
-
 	if checkFirstIsDigit(s) {
 		return "", ErrInvalidString
 	}
+
+	sr := []rune(s)
+	builder := strings.Builder{}
+	var backslash bool
 
 	for index, item := range sr {
 		if checkCurrentIsDigitAndPreviousNotBackslash(item, index, sr) {
 			return "", ErrInvalidString
 		}
-		if checkBackslash(item, backslash) {
+		if item == '\\' && !backslash {
 			backslash = true
 			continue
 		}
@@ -55,7 +53,10 @@ func Unpack(s string) (string, error) {
 			continue
 		}
 		if unicode.IsDigit(item) {
-			n = int(item - '0')
+			n, err := strconv.Atoi(string(item))
+			if err != nil {
+				return "", ErrConvertAtoi
+			}
 			if n == 0 {
 				unpackedString := builder.String()
 				builder.Reset()

@@ -12,15 +12,16 @@ func TestUnpack(t *testing.T) {
 		input    string
 		expected string
 	}{
-		"Case-1": {input: "⌘4bc2d5e", expected: "⌘⌘⌘⌘bccddddde"},
-		"Case-2": {input: "a4bc2d5e", expected: "aaaabccddddde"},
-		"Case-3": {input: "abccd", expected: "abccd"},
-		"Case-4": {input: "", expected: ""},
-		"Case-5": {input: "aaa0b", expected: "aab"},
-		"Case-6": {input: `qwe\4\5`, expected: `qwe45`},
-		"Case-7": {input: `qwe\45`, expected: `qwe44444`},
-		"Case-8": {input: `qwe\\5`, expected: `qwe\\\\\`},
-		"Case-9": {input: `qwe\\\3`, expected: `qwe\3`},
+		"Case-1":  {input: "⌘4bc2d5e", expected: "⌘⌘⌘⌘bccddddde"},
+		"Case-2":  {input: "a4bc2d5e", expected: "aaaabccddddde"},
+		"Case-3":  {input: "abccd", expected: "abccd"},
+		"Case-4":  {input: "", expected: ""},
+		"Case-5":  {input: "aaa0b", expected: "aab"},
+		"Case-6":  {input: `qwe\4\5`, expected: `qwe45`},
+		"Case-7":  {input: `qwe\45`, expected: `qwe44444`},
+		"Case-8":  {input: `qwe\\5`, expected: `qwe\\\\\`},
+		"Case-9":  {input: `qwe\\\3`, expected: `qwe\3`},
+		"Case-10": {input: "d\n5abc", expected: "d\n\n\n\n\nabc"},
 	}
 	t.Parallel()
 	for _, tc := range cases {
