@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const limitWords = 10
+
 var re = regexp.MustCompile(`[[:punct:]]`)
 
 type countWord map[string]int
@@ -35,28 +37,35 @@ func (wC *WordCounts) addWord(word string) {
 	wC.count[word] = 1
 }
 
+func (wC *WordCounts) getMostWords() []string {
+	// Сортирует и возвращает 10 наиболее частых слов
+	sort.Slice(wC.words, func(i, j int) bool {
+		if wC.count[wC.words[i]] == wC.count[wC.words[j]] {
+			return wC.words[i] < wC.words[j]
+		}
+		return wC.count[wC.words[i]] > wC.count[wC.words[j]]
+	})
+	if len(wC.words) > limitWords {
+		return wC.words[:10]
+	}
+	return wC.words
+}
+
 func Top10(text string) []string {
 	if len(text) == 0 {
 		return nil
 	}
-	compileText := re.ReplaceAllString(text, "")
-	words := strings.Fields(compileText)
-
 	wordCounter := NewWordCounts()
-	for _, word := range words {
+	compileText := re.ReplaceAllString(text, "")
+
+	for _, word := range strings.Fields(compileText) {
 		lowerWord := strings.ToLower(word)
+
 		if wordCounter.getWord(lowerWord) {
 			wordCounter.count[lowerWord]++
 		} else {
 			wordCounter.addWord(lowerWord)
 		}
 	}
-	sort.Slice(wordCounter.words, func(i, j int) bool {
-		if wordCounter.count[wordCounter.words[i]] == wordCounter.count[wordCounter.words[j]] {
-			return wordCounter.words[i] < wordCounter.words[j]
-		}
-		return wordCounter.count[wordCounter.words[i]] > wordCounter.count[wordCounter.words[j]]
-	})
-
-	return wordCounter.words[:10]
+	return wordCounter.getMostWords()
 }
