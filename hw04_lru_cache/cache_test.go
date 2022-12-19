@@ -61,16 +61,8 @@ func TestCache(t *testing.T) {
 		wasInCache = c.Set("ccc", 300)
 		require.False(t, wasInCache)
 
-		wasInCache = c.Set("fff", 350)
-		require.False(t, wasInCache)
-
-		// тест на выталкивание элемента из-за размера очереди
-		value, ok := c.Get("aaa")
-		require.False(t, ok)
-		require.Nil(t, value)
-
 		// тест на перемещение существующего элемента в начало
-		_, ok = c.Get("fff")
+		_, ok := c.Get("aaa")
 		require.True(t, ok)
 
 		_, ok = c.Get("ccc")
@@ -83,6 +75,26 @@ func TestCache(t *testing.T) {
 		val, ok := c.Get("bbb")
 		require.False(t, ok)
 		require.Nil(t, val)
+	})
+
+	t.Run("drop item from queue size", func(t *testing.T) {
+		c := NewCache(3)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("ccc", 300)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("fff", 350)
+		require.False(t, wasInCache)
+
+		value, ok := c.Get("aaa")
+		require.False(t, ok)
+		require.Nil(t, value)
 	})
 }
 
