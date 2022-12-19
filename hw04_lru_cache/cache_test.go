@@ -50,13 +50,55 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(3)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("ccc", 300)
+		require.False(t, wasInCache)
+
+		// тест на перемещение существующего элемента в начало
+		_, ok := c.Get("aaa")
+		require.True(t, ok)
+
+		_, ok = c.Get("ccc")
+		require.True(t, ok)
+
+		wasInCache = c.Set("ddd", 400)
+		require.False(t, wasInCache)
+
+		// тест на выталкивание элемента, который был затронут наиболее давно
+		val, ok := c.Get("bbb")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("drop item from queue size", func(t *testing.T) {
+		c := NewCache(3)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("ccc", 300)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("fff", 350)
+		require.False(t, wasInCache)
+
+		value, ok := c.Get("aaa")
+		require.False(t, ok)
+		require.Nil(t, value)
 	})
 }
 
 func TestCacheMultithreading(t *testing.T) {
-	t.Skip() // Remove me if task with asterisk completed.
-
 	c := NewCache(10)
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
