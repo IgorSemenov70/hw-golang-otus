@@ -11,7 +11,7 @@ type Cache interface {
 }
 
 type lruCache struct {
-	sync.Mutex
+	mx       sync.Mutex
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
@@ -32,8 +32,8 @@ func NewCache(capacity int) Cache {
 
 func (cache *lruCache) Set(key Key, value interface{}) bool {
 	// Добавляет значение в кэш по ключу
-	cache.Lock()
-	defer cache.Unlock()
+	cache.mx.Lock()
+	defer cache.mx.Unlock()
 	item := cacheItem{key, value}
 
 	if i, ok := cache.items[key]; ok {
@@ -53,8 +53,8 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 
 func (cache *lruCache) Get(key Key) (interface{}, bool) {
 	// Возвращает значение из кэша по ключу
-	cache.Lock()
-	defer cache.Unlock()
+	cache.mx.Lock()
+	defer cache.mx.Unlock()
 	if item, ok := cache.items[key]; ok {
 		cache.queue.MoveToFront(item)
 		cacheValue := cache.items[key].Value
@@ -65,8 +65,8 @@ func (cache *lruCache) Get(key Key) (interface{}, bool) {
 
 func (cache *lruCache) Clear() {
 	// Очищает кэш
-	cache.Lock()
-	defer cache.Unlock()
+	cache.mx.Lock()
+	defer cache.mx.Unlock()
 	cache.queue = NewList()
 	cache.items = make(map[Key]*ListItem, cache.capacity)
 }
