@@ -5,14 +5,16 @@ import (
 	"sync"
 )
 
-var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
-var EmptyArrayTasks = errors.New("tasks array is empty")
+var (
+	ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
+	ErrEmptyArrayTasks     = errors.New("tasks array is empty")
+)
 
 type Task func() error
 
 func Run(tasks []Task, n, m int) error {
 	if len(tasks) == 0 {
-		return EmptyArrayTasks
+		return ErrEmptyArrayTasks
 	}
 	wg := &sync.WaitGroup{}
 	taskChannel := make(chan Task)

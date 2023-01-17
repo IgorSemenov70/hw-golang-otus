@@ -76,7 +76,7 @@ func TestRun(t *testing.T) {
 		maxErrorsCount := 23
 		err := Run(tasks, workersCount, maxErrorsCount)
 
-		require.Truef(t, errors.Is(err, EmptyArrayTasks), "tasks array is empty", err)
+		require.Truef(t, errors.Is(err, ErrEmptyArrayTasks), "tasks array is empty", err)
 	})
 
 	t.Run("if length tasks with errors is less than the number of workers", func(t *testing.T) {
@@ -149,6 +149,10 @@ func TestRun(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
 	})
+}
+
+func TestWithRequireEventually(t *testing.T) {
+	defer goleak.VerifyNone(t)
 
 	t.Run("tasks without time.Sleep", func(t *testing.T) {
 		tasksCount := 50
