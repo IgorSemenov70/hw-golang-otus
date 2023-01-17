@@ -149,4 +149,46 @@ func TestRun(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
 	})
+
+	t.Run("tasks without time.Sleep", func(t *testing.T) {
+		tasksCount := 50
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+		var sumTime time.Duration
+
+		for i := 0; i < tasksCount; i++ {
+			taskSleep := time.Millisecond * time.Duration(rand.Intn(100))
+			sumTime += taskSleep
+
+			tasks = append(tasks, func() error {
+				time.Sleep(taskSleep)
+				atomic.AddInt32(&runTasksCount, 1)
+				return nil
+			})
+		}
+
+		workersCount := 5
+		maxErrorsCount := 1
+
+		require.Eventually(t, func() bool {
+			start := time.Now()
+			err := Run(tasks, workersCount, maxErrorsCount)
+
+			elapsedTime := time.Since(start)
+			if err != nil {
+				return false
+			}
+
+			if runTasksCount != int32(tasksCount) {
+				return false
+			}
+
+			if int64(elapsedTime) > int64(sumTime/2) {
+				return false
+			}
+
+			return true
+		}, sumTime, 25*time.Millisecond)
+	})
 }
