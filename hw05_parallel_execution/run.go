@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
-	ErrEmptyArrayTasks     = errors.New("tasks array is empty")
+	ErrErrorsLimitExceeded       = errors.New("errors limit exceeded")
+	ErrEmptyArrayTasks           = errors.New("tasks array is empty")
+	ErrNumberOfWorkersCantBeZero = errors.New("the number of workers can't be 0")
 )
 
 type Task func() error
@@ -16,40 +17,43 @@ func Run(tasks []Task, n, m int) error {
 	if len(tasks) == 0 {
 		return ErrEmptyArrayTasks
 	}
+	if n == 0 {
+		return ErrNumberOfWorkersCantBeZero
+	}
 	wg := &sync.WaitGroup{}
 	taskChannel := make(chan Task)
 	errChannel := make(chan error)
 	done := make(chan struct{})
-	errCount := 0
 
-	go func(done <-chan struct{}, wg *sync.WaitGroup) {
+	go func() {
 		for _, err := range tasks {
 			select {
-			case taskChannel <- err:
 			case <-done:
 				break
+			case taskChannel <- err:
 			}
 		}
 		close(taskChannel)
 		wg.Wait()
 		close(errChannel)
-	}(done, wg)
+	}()
 
 	for i := 0; i < n; i++ {
 		wg.Add(1)
-		go func(done <-chan struct{}, wg *sync.WaitGroup) {
+		go func() {
 			defer wg.Done()
 
 			for task := range taskChannel {
 				select {
-				case errChannel <- task():
 				case <-done:
 					return
+				case errChannel <- task():
 				}
 			}
-		}(done, wg)
+		}()
 	}
 
+	errCount := 0
 	for err := range errChannel {
 		if err != nil {
 			errCount++
