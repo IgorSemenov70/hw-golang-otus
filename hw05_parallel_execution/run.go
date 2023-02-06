@@ -17,7 +17,7 @@ func Run(tasks []Task, n, m int) error {
 	if len(tasks) == 0 {
 		return ErrEmptyArrayTasks
 	}
-	if n == 0 {
+	if n <= 0 {
 		return ErrNumberOfWorkersCantBeZero
 	}
 	wg := &sync.WaitGroup{}
