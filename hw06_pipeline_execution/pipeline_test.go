@@ -90,4 +90,44 @@ func TestPipeline(t *testing.T) {
 		require.Len(t, result, 0)
 		require.Less(t, int64(elapsed), int64(abortDur)+int64(fault))
 	})
+
+	t.Run("Empty Array Stages case", func(t *testing.T) {
+		in := make(Bi)
+		emptyStages := make([]Stage, 0)
+		result := ExecutePipeline(in, nil, emptyStages...)
+
+		require.Nil(t, result)
+	})
+
+	t.Run("Concurrent case with require.Eventually", func(t *testing.T) {
+		in := make(Bi)
+		data := []int{1, 2, 3, 4, 5}
+
+		go func() {
+			for _, v := range data {
+				in <- v
+			}
+			close(in)
+		}()
+
+		require.Eventually(t, func() bool {
+			result := make([]string, 0, 10)
+
+			start := time.Now()
+			for s := range ExecutePipeline(in, nil, stages...) {
+				result = append(result, s.(string))
+			}
+			elapsed := time.Since(start)
+
+			if len(result) != 5 {
+				return false
+			}
+
+			if int64(elapsed) > int64(2*time.Second/2) {
+				return false
+			}
+
+			return true
+		}, 2*time.Second, 25*time.Millisecond)
+	})
 }
